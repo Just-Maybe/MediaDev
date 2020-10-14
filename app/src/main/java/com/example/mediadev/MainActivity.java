@@ -4,19 +4,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.Surface;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'native-lib' library on application startup.
     static {
-        System.loadLibrary("avfilter");
-        System.loadLibrary("postproc");
-        System.loadLibrary("avformat");
-        System.loadLibrary("avutil");
-        System.loadLibrary("swscale");
-        System.loadLibrary("swresample");
-        System.loadLibrary("avcodec");
         System.loadLibrary("native-lib");
     }
 
@@ -28,7 +23,6 @@ public class MainActivity extends AppCompatActivity {
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
-
     }
 
     /**
@@ -37,4 +31,19 @@ public class MainActivity extends AppCompatActivity {
      */
     public native String stringFromJNI();
 
+    public native String getFFmpegVersion();
+
+    public native void setSurfaceNative(Surface surface);
+
+    public native void prepareNative(String mDataSource);
+
+    public native void startNative();
+
+    public native void restartNative();
+
+    public native void stopNative();
+
+    public native void releaseNative();
+
+    public native boolean isPlayerNative();
 }

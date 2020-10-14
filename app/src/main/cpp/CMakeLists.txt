@@ -12,20 +12,23 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(LIBS_PATH ${CMAKE_SOURCE_DIR}/../../../libs/armeabi-v7a)
 
-set(FFMPEG ${LIBS_PATH}/ffmpeg)
+include_directories(${LIBS_PATH}/ffmpeg/include)
+
+include_directories(include)
+
+include_directories(utils)
 
 
-include_directories(${FFMPEG}/include)
 
 add_library(avcodec
-            SHARED
-            IMPORTED
-            )
+        SHARED
+        IMPORTED
+        )
 
 set_target_properties(avcodec
         PROPERTIES IMPORTED_LOCATION
         ${LIBS_PATH}/libavcodec.so
-                        )
+        )
 
 add_library(postproc
         SHARED
@@ -38,41 +41,41 @@ set_target_properties(postproc
         )
 
 add_library(avfilter
-            SHARED
-            IMPORTED
-            )
+        SHARED
+        IMPORTED
+        )
 
-set_target_properties(  avfilter
-                        PROPERTIES IMPORTED_LOCATION
-                        ${LIBS_PATH}/libavfilter.so
-                        )
+set_target_properties(avfilter
+        PROPERTIES IMPORTED_LOCATION
+        ${LIBS_PATH}/libavfilter.so
+        )
 
 add_library(avformat
         SHARED
         IMPORTED
         )
 
-set_target_properties(  avformat
-                        PROPERTIES IMPORTED_LOCATION
-                        ${LIBS_PATH}/libavformat.so
-                     )
+set_target_properties(avformat
+        PROPERTIES IMPORTED_LOCATION
+        ${LIBS_PATH}/libavformat.so
+        )
 
 add_library(avutil
         SHARED
         IMPORTED
         )
 
-set_target_properties(  avutil
-                        PROPERTIES IMPORTED_LOCATION
-                        ${LIBS_PATH}/libavutil.so
-                        )
+set_target_properties(avutil
+        PROPERTIES IMPORTED_LOCATION
+        ${LIBS_PATH}/libavutil.so
+        )
 
 add_library(swresample
         SHARED
         IMPORTED
         )
 
-set_target_properties(  swresample
+set_target_properties(swresample
         PROPERTIES IMPORTED_LOCATION
         ${LIBS_PATH}/libswresample.so
         )
@@ -82,20 +85,21 @@ add_library(swscale
         IMPORTED
         )
 
-set_target_properties(  swscale
+set_target_properties(swscale
         PROPERTIES IMPORTED_LOCATION
         ${LIBS_PATH}/libswscale.so
         )
 
 add_library( # Sets the name of the library.
-             native-lib
+        native-lib
 
-             # Sets the library as a shared library.
-             SHARED
+        # Sets the library as a shared library.
+        SHARED
 
-             # Provides a relative path to your source file(s).
+        # Provides a relative path to your source file(s).
         native-lib.cpp
-#             Mp3Encoder.cpp
+        jm_Player.cpp
+        JNICallback.cpp
         )
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -105,25 +109,25 @@ add_library( # Sets the name of the library.
 # completing its build.
 
 find_library( # Sets the name of the path variable.
-              log-lib
+        log-lib
 
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+        # Specifies the name of the NDK library that
+        # you want CMake to locate.
+        log)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
-                       postproc
-                       avcodec
-                       avfilter
-                       avformat
-                       avutil
-                       swresample
-                       swscale
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+        native-lib
+        postproc
+        avcodec
+        avfilter
+        avformat
+        avutil
+        swresample
+        swscale
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib})

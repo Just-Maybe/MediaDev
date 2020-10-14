@@ -21,7 +21,7 @@
 #ifndef AVCODEC_CODEC_ID_H
 #define AVCODEC_CODEC_ID_H
 
-#include "include/libavutil/avutil.h"
+#include "libavutil/avutil.h"
 
 /**
  * @addtogroup lavc_core
