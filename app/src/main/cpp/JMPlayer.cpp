@@ -13,7 +13,7 @@ JMPlayer::JMPlayer(const char *data_source, JNICallback *callback) {
     strcpy(this->data_source, data_source);
     this->pCallback = callback;
     duration = 0;
-    pthread_mutex_init(&seekMutex,0);
+    pthread_mutex_init(&seekMutex, 0);
 }
 
 
@@ -41,6 +41,24 @@ void JMPlayer::prepare_() {
         }
         return;
     }
+    LOGD("第二步 查找媒体中的音视频流信息");
+    int ret = avformat_find_stream_info(formatContext, NULL);
+    if (ret < 0) {
+        if (pCallback) {
+            pCallback->onErrorAction(THREAD_CHILD, FFMPEG_CAN_NOT_FIND_STREAMS);
+            return;
+        }
+    }
+    LOGD("第三步 遍历流信息，查找音频流，视频流");
+    for (int i = 0; i < formatContext->nb_streams; ++i) {
+        LOGD("第四步 获取流信息")
+        AVStream *stream = formatContext->streams[i];
 
+        LOGD("从 stream 流中获取解码这段流的参数信息，区分音频，视频");
+        AVCodecParameters *codecpar = stream->codecpar;
+
+        LOGD("第六步 通过流的编解码参数中的编码ID，获取当前流的解码器")
+        AVCodec *codec = avcodec_find_decoder(codecpar->codec_id);
+    }
 }
 

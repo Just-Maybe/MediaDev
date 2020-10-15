@@ -17,7 +17,17 @@ JNICallback::JNICallback(JavaVM *javaVm, JNIEnv *env, jobject instance) {
 }
 
 void JNICallback::onErrorAction(int thread_mode, int error_code) {
-
+    if (thread_mode == THREAD_MAIN) {//主线程可以直接调用 Java 方法
+        env->CallVoidMethod(this->instance, jmd_error, error_code);
+    } else {
+        //子线程，用附加 native 线程到 JVM 的方式，来获取到权限 env
+        JNIEnv *jniEnv = nullptr;
+        int ret = javaVm->AttachCurrentThread(&jniEnv, 0);
+        if (ret != JNI_OK) {
+            return;
+        }
+        jniEnv->CallVoidMethod(this->instance, jmd_error, error_code);
+    }
 }
 
 void JNICallback::onPrepared(int thread_mode) {
@@ -35,10 +45,23 @@ void JNICallback::onPrepared(int thread_mode) {
     }
 }
 
-void JNICallback::onProgress(int thread, int progress) {
-
+void JNICallback::onProgress(int thread_mode, int progress) {
+    if (thread_mode == THREAD_MAIN) {
+        env->CallVoidMethod(this->instance, jmd_progress, progress);
+    } else {
+        JNIEnv *jniEnv = nullptr;
+        int ret = javaVm->AttachCurrentThread(&jniEnv, 0);
+        if (ret != JNI_OK) {
+            return;
+        }
+        jniEnv->CallVoidMethod(this->instance, jmd_progress, progress);
+    }
 }
 
 JNICallback::~JNICallback() {
-
+    LOGD("~JNICallback");
+    this->javaVm = 0;
+    env->DeleteLocalRef(this->instance);
+    this->instance = 0;
+    env = 0;
 }
