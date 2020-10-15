@@ -3,9 +3,21 @@
 //
 
 #include <jni.h>
-#include "include/jm_Player.h"
+#include "include/JMPlayer.h"
 
-void jm_Player::prepare_() {
+JMPlayer::JMPlayer(const char *data_source, JNICallback *callback) {
+    // 这里有坑，这里赋值之后，不能给其他地方用，因为被释放了，变成了悬空指针
+    // this->data_source = data_source;
+    //解决上面的坑，自己 copy 才行 +1 在 C++ 中有一个 \n
+    this->data_source = new char[strlen(data_source) + 1];
+    strcpy(this->data_source, data_source);
+    this->pCallback = callback;
+    duration = 0;
+    pthread_mutex_init(&seekMutex,0);
+}
+
+
+void JMPlayer::prepare_() {
     LOGD("第一步：打开流媒体地址");
     formatContext = avformat_alloc_context();
 
@@ -31,3 +43,4 @@ void jm_Player::prepare_() {
     }
 
 }
+

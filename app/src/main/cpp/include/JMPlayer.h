@@ -9,10 +9,10 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 }
-
+#include <pthread.h>
 #include "JNICallback.h"
 
-class jm_Player {
+class JMPlayer {
 private:
     char *data_source = 0;
 
@@ -21,7 +21,15 @@ private:
     AVFormatContext *formatContext;
 
     JNICallback *pCallback = 0;
+
+    pthread_mutex_t seekMutex;
+
+    long duration = 0;
 public:
+    JMPlayer();
+
+    JMPlayer(const char *data_source, JNICallback *callback);
+
 
     void prepare_();
 };

@@ -8,6 +8,8 @@ import android.view.Surface;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mediadev.player.PlayerManger;
+
 public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'native-lib' library on application startup.
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
+        PlayerManger.getInstance();
     }
 
     /**
@@ -31,19 +34,5 @@ public class MainActivity extends AppCompatActivity {
      */
     public native String stringFromJNI();
 
-    public native String getFFmpegVersion();
 
-    public native void setSurfaceNative(Surface surface);
-
-    public native void prepareNative(String mDataSource);
-
-    public native void startNative();
-
-    public native void restartNative();
-
-    public native void stopNative();
-
-    public native void releaseNative();
-
-    public native boolean isPlayerNative();
 }
