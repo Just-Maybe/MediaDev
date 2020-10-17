@@ -18,6 +18,7 @@ include_directories(include)
 
 include_directories(utils)
 
+file(GLOB Plyer_CPP /*.cpp)
 
 
 add_library(avcodec
@@ -100,6 +101,8 @@ add_library( # Sets the name of the library.
         native-lib.cpp
         JMPlayer.cpp
         JNICallback.cpp
+        VideoChannel.cpp
+        AudioChannel.cpp
         )
 
 # Searches for a specified prebuilt library and stores the path as a

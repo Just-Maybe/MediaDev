@@ -59,6 +59,38 @@ void JMPlayer::prepare_() {
 
         LOGD("第六步 通过流的编解码参数中的编码ID，获取当前流的解码器")
         AVCodec *codec = avcodec_find_decoder(codecpar->codec_id);
+        if (!codec) {
+            pCallback->onErrorAction(THREAD_CHILD, FFMPEG_FIND_DECODER_FAIL);
+            return;
+        }
+        LOGD("第七步 通过拿到解码器，获取解码器上下文");
+        AVCodecContext *codecContext = avcodec_alloc_context3(codec);
+        if (!codecContext) {
+            pCallback->onErrorAction(THREAD_CHILD, FFMPEG_ALLOC_CODEC_CONTEXT_FAIL);
+            return;
+        }
+        LOGD("第八步 给解码器上下文设置参数")
+        result = avcodec_parameters_to_context(codecContext, codecpar);
+        if (result < 0) {
+            pCallback->onErrorAction(THREAD_CHILD, FFMPEG_CODEC_CONTEXT_PARAMETERS_FAIL);
+            return;
+        }
+        LOGD("第九步 打开解码器")
+        result = avcodec_open2(codecContext, codec, NULL);
+        if (result < 0) {
+            pCallback->onErrorAction(THREAD_CHILD, FFMPEG_OPEN_DECODER_FAIL);
+            return;
+        }
+
+        //媒体流 获取时间基
+        AVRational baseTime = codecContext->time_base;
+
+        LOGD("第十步 从编码器参数中获取流类型 codec_type");
+        if (codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+
+        } else if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+
+        }
     }
 }
 
