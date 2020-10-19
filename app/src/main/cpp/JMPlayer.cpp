@@ -87,10 +87,20 @@ void JMPlayer::prepare_() {
 
         LOGD("第十步 从编码器参数中获取流类型 codec_type");
         if (codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-
+            audioChannel = new AudioChannel();
         } else if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 
         }
+    }
+
+    LOGD("第十一步 如果流中没有音视频数据");
+    if (!audioChannel && !videoChannel) {
+        pCallback->onErrorAction(THREAD_CHILD, FFMPEG_NOMEDIA);
+        return;
+    }
+    LOGD("第十二步 有视频 或者 有音频")
+    if (pCallback) {
+        pCallback->onPrepared(THREAD_CHILD);
     }
 }
 

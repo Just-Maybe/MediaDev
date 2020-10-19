@@ -7,8 +7,9 @@
 
 #include "BaseChannel.h"
 
-class AudioChannel {
-
+class AudioChannel : public BaseChannel {
+public:
+    AudioChannel(int stream_index, AVCodecContext *pContext, AVRational, JNICallback *jniCallback);
 };
 
 

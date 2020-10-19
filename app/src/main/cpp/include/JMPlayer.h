@@ -9,8 +9,11 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 }
+
 #include <pthread.h>
 #include "JNICallback.h"
+#include "AudioChannel.h"
+#include "VideoChannel.h"
 
 class JMPlayer {
 private:
@@ -25,6 +28,11 @@ private:
     pthread_mutex_t seekMutex;
 
     long duration = 0;
+
+    AudioChannel *audioChannel = 0;
+
+    VideoChannel *videoChannel = 0;
+
 public:
     JMPlayer();
 
