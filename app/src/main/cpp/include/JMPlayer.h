@@ -38,6 +38,7 @@ public:
 
     JMPlayer(const char *data_source, JNICallback *callback);
 
+    void prepare();
 
     void prepare_();
 };

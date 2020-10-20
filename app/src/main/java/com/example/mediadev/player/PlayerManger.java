@@ -13,11 +13,6 @@ import com.example.mediadev.callback.OnProgressListener;
  */
 public class PlayerManger {
 
-    private static PlayerManger mPlayerManger = null;
-
-    private OnPreparedListener mOnPreparedListener;
-    private OnProgressListener mOnProgressListener;
-
     static {
         System.loadLibrary("avfilter");
         System.loadLibrary("postproc");
@@ -28,6 +23,11 @@ public class PlayerManger {
         System.loadLibrary("avcodec");
         System.loadLibrary("native-lib");
     }
+
+    private static PlayerManger mPlayerManger = null;
+
+    private OnPreparedListener mOnPreparedListener;
+    private OnProgressListener mOnProgressListener;
 
     private PlayerManger() {
 
@@ -42,6 +42,14 @@ public class PlayerManger {
             }
         }
         return mPlayerManger;
+    }
+
+    public void setmOnPreparedListener(OnPreparedListener mOnPreparedListener) {
+        this.mOnPreparedListener = mOnPreparedListener;
+    }
+
+    public void setmOnProgressListener(OnProgressListener mOnProgressListener) {
+        this.mOnProgressListener = mOnProgressListener;
     }
 
     public native String getFFmpegVersion();

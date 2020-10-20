@@ -5,6 +5,13 @@
 #include <jni.h>
 #include "include/JMPlayer.h"
 
+void *customTaskPrepareThread(void *arg) {
+    LOGD("customTaskPrepareThread");
+    JMPlayer *player = static_cast<JMPlayer *>(arg);
+    player->prepare_();
+    return 0;//这里是坑一定要记得 return;
+}
+
 JMPlayer::JMPlayer(const char *data_source, JNICallback *callback) {
     // 这里有坑，这里赋值之后，不能给其他地方用，因为被释放了，变成了悬空指针
     // this->data_source = data_source;
@@ -14,6 +21,12 @@ JMPlayer::JMPlayer(const char *data_source, JNICallback *callback) {
     this->pCallback = callback;
     duration = 0;
     pthread_mutex_init(&seekMutex, 0);
+}
+
+void JMPlayer::prepare() {
+    //解析流媒体，通过 ffmpeg  API 来解析 dataSource
+    //这里需要异步，由于这个函数从 Java 主线程调用的，所以这里需要创建一个异步线程
+    pthread_create(&pid_thread, 0, customTaskPrepareThread, this);
 }
 
 
@@ -50,9 +63,9 @@ void JMPlayer::prepare_() {
         }
     }
     LOGD("第三步 遍历流信息，查找音频流，视频流");
-    for (int i = 0; i < formatContext->nb_streams; ++i) {
+    for (int stream_index = 0; stream_index < formatContext->nb_streams; ++stream_index) {
         LOGD("第四步 获取流信息")
-        AVStream *stream = formatContext->streams[i];
+        AVStream *stream = formatContext->streams[stream_index];
 
         LOGD("从 stream 流中获取解码这段流的参数信息，区分音频，视频");
         AVCodecParameters *codecpar = stream->codecpar;
@@ -87,9 +100,13 @@ void JMPlayer::prepare_() {
 
         LOGD("第十步 从编码器参数中获取流类型 codec_type");
         if (codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            audioChannel = new AudioChannel();
+            audioChannel = new AudioChannel(stream_index, codecContext, baseTime, pCallback);
         } else if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-
+            //获取视频帧 fps
+            AVRational frame_rate = stream->avg_frame_rate;
+            int fps_value = av_q2d(frame_rate);
+            videoChannel = new VideoChannel(stream_index, codecContext, baseTime, fps_value,
+                                            pCallback);
         }
     }
 
@@ -103,4 +120,5 @@ void JMPlayer::prepare_() {
         pCallback->onPrepared(THREAD_CHILD);
     }
 }
+
 

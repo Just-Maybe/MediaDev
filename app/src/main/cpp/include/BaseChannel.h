@@ -26,7 +26,7 @@ public:
     JNICallback *javaCallHelper;
 
     // 音视频同步需要用到
-    AVRational *base_time;
+    AVRational base_time;
     double audio_time;
     double video_time;
 
@@ -36,12 +36,13 @@ public:
     //AVFrame 音频：PCM，视频YUV
     SafeQueue<AVFrame *> frames;  //音视频未编码数据 (直接 渲染 和 播放)
 
-    BaseChannel(int stream_index, AVCodecContext *pContext, AVRational *av_base_time,
+    BaseChannel(int stream_index, AVCodecContext *pContext, AVRational av_base_time,
                 JNICallback *jniCallback) {
         this->stream_index = stream_index;
         this->pContext = pContext;
         this->base_time = av_base_time;
-
+        packages.setReleaseCallback(releaseAVPacket);
+        frames.setReleaseCallback(releaseAVFrame);
     }
 
     /**
@@ -72,7 +73,7 @@ public:
     }
 
     ~BaseChannel() {
-        packages.clear();
-        frames.clear();
+        packages.clearQueue();
+        frames.clearQueue();
     }
 };

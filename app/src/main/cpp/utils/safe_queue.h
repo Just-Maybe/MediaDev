@@ -111,7 +111,7 @@ public:
 
     //设置删除视频帧的回调
     void setDeleteVideoFrameCallback(DeleteFrameCallback deleteFrameCallback) {
-        this->delFrameCallback = deleteFrameCallback;
+        this->deleteFrameCallback = deleteFrameCallback;
     }
 
     void deleteVideoFrame() {

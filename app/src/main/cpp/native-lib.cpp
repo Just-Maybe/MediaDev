@@ -35,7 +35,7 @@ Java_com_example_mediadev_player_PlayerManger_getFFmpegVersion(JNIEnv *env, jobj
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_setSurfaceNative(JNIEnv *env, jobject thiz,
-                                                        jobject surface) {
+                                                               jobject surface) {
     // TODO: implement setSurfaceNative()
 
 }
@@ -43,12 +43,13 @@ Java_com_example_mediadev_player_PlayerManger_setSurfaceNative(JNIEnv *env, jobj
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_prepareNative(JNIEnv *env, jobject thiz,
-                                                     jstring m_data_source) {
+                                                            jstring m_data_source) {
     // TODO: implement prepareNative()
     JNICallback *jniCallback = new JNICallback(javaVM, env, thiz);
     const char *data_source = env->GetStringUTFChars(m_data_source, NULL);
     player = new JMPlayer(data_source, jniCallback);
-    player->prepare_();
+    player->prepare();
+    env->ReleaseStringUTFChars(m_data_source, data_source);
 }
 
 
