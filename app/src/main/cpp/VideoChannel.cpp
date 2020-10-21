@@ -49,7 +49,10 @@ void VideoChannel::start() {
 }
 
 void VideoChannel::stop() {
-
+    isStop = true;
+    if (javaCallHelper) {
+        javaCallHelper = 0;
+    }
 }
 
 void VideoChannel::video_decode() {
@@ -69,11 +72,23 @@ void VideoChannel::setAudioChannel(AudioChannel *audioChannel) {
 }
 
 void VideoChannel::release() {
-
+    LOGE("av_time_diff release 睡眠 size :%d", frames.queueSize());
+    isPlaying = false;
+    stop();
+    if (frames.queueSize() > 0) {
+        frames.clearQueue();
+    }
+    if (packages.queueSize() > 0) {
+        packages.clearQueue();
+    }
+    if (renderCallback) {
+        renderCallback = 0;
+    }
+    LOGE("av_time_diff release 睡眠 size :%d", frames.queueSize());
 }
 
 void VideoChannel::restart() {
-
+    isStop = false;
 }
 
 

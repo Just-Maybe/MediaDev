@@ -84,7 +84,7 @@ void JMPlayer::prepare_() {
             return;
         }
         LOGD("第七步 通过拿到解码器，获取解码器上下文");
-        AVCodecContext *codecContext = avcodec_alloc_context3(codec);
+        codecContext = avcodec_alloc_context3(codec);
         if (!codecContext) {
             pCallback->onErrorAction(THREAD_CHILD, FFMPEG_ALLOC_CODEC_CONTEXT_FAIL);
             return;
@@ -134,7 +134,7 @@ void JMPlayer::start() {
 
     if (videoChannel) {
         videoChannel->setAudioChannel(audioChannel);
-        videoChannel->start()
+        videoChannel->start();
     }
     if (audioChannel) {
         audioChannel->start();
@@ -144,8 +144,94 @@ void JMPlayer::start() {
     pthread_create(&pid_thread, 0, customTaskStartThread, this);
 }
 
+/**
+ * 读包、未解码的音视频数据放到队列中
+ */
 void JMPlayer::start_() {
+    //循环 读音视频包
+    while (isPlaying) {
+        if (!formatContext) {
+            LOGE("formatContext : 已经被释放了");
+            return;
+        }
+        if (isStop) {
+            continue;
+        }
+        LOGD("start_");
+        //内存泄漏点 1，解决方法 : 控制队列大小
+        if (videoChannel && videoChannel->packages.queueSize() > 100) {
+            //休眠 等待队列中的数据被消费
+            av_usleep(10 * 1000);
+            continue;
+        }
 
+        //内存泄漏点 2，解决方法 : 控制队列大小
+        if (audioChannel && audioChannel->packages.queueSize() > 100) {
+            av_usleep(10 * 1000);
+            continue;
+        }
+        //未解码数据，可能是音频或视频数据
+        AVPacket *packet = av_packet_alloc();
+
+        int ret = av_read_frame(formatContext, packet);
+
+        if (!ret) {
+            if (videoChannel && videoChannel->stream_index == packet->stream_index) { //视频包
+                LOGD("steam_index 视频 %s ", "push");
+                videoChannel->packages.push(packet);
+            } else if (audioChannel && audioChannel->stream_index == packet->stream_index) { //音频包
+                LOGD("steam_index 音频 %s", "push");
+                audioChannel->packages.push(packet);
+            }
+        } else if (ret == AVERROR_EOF) { //读取完毕
+            LOGE("steam_index 拆包完成 读取完成了");
+            isPlaying = 0;
+            stop();
+            release();
+            break;
+        } else {
+            LOGE("steam_index 拆包 读取失败");
+            break;
+        }
+    }//end while
+    //释放工作
+    isPlaying = 0;
+    isStop = false;
+    videoChannel->stop();
+    audioChannel->stop();
+}
+
+void JMPlayer::stop() {
+    LOGD("Player 执行停止")
+    isStop = true;
+
+    if (videoChannel) {
+        videoChannel->stop();
+    }
+    if (audioChannel) {
+        audioChannel->stop();
+    }
+}
+
+void JMPlayer::release() {
+    LOGD("Player 执行销毁");
+    isPlaying = false;
+    stop();
+    if (videoChannel) {
+        videoChannel->release();
+    }
+    if (audioChannel) {
+        audioChannel->release();
+    }
+    if (codecContext) {
+        avcodec_free_context(&codecContext);
+        codecContext = 0;
+    }
+    if (formatContext) {
+        avformat_free_context(formatContext);
+        formatContext = 0;
+    }
+    duration = 0;
 }
 
 

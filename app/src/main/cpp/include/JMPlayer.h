@@ -8,6 +8,7 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
+#include <libavcodec/avcodec.h>
 }
 
 #include <pthread.h>
@@ -22,6 +23,8 @@ private:
     pthread_t pid_thread;
 
     AVFormatContext *formatContext;
+
+    AVCodecContext *codecContext;
 
     JNICallback *pCallback = 0;
 
@@ -38,6 +41,8 @@ public:
 
     bool isPlaying;
 
+    bool isStop;
+
     JMPlayer();
 
     JMPlayer(const char *data_source, JNICallback *callback);
@@ -53,6 +58,10 @@ public:
     long getDuration() {
         return duration;
     }
+
+    void stop();
+
+    void release();
 };
 
 

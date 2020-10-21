@@ -90,6 +90,10 @@ public:
         return q.empty();
     }
 
+    int queueSize() {
+        return q.size();
+    }
+
     void clearQueue() {
         pthread_mutex_lock(&mutex);
 
