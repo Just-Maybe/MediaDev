@@ -5,6 +5,13 @@
 #include <jni.h>
 #include "include/JMPlayer.h"
 
+void *customTaskStartThread(void *arg) {
+    LOGD("customTaskStartThread");
+    JMPlayer *player = static_cast<JMPlayer *>(arg);
+    player->start_();
+    return 0;
+}
+
 void *customTaskPrepareThread(void *arg) {
     LOGD("customTaskPrepareThread");
     JMPlayer *player = static_cast<JMPlayer *>(arg);
@@ -119,6 +126,26 @@ void JMPlayer::prepare_() {
     if (pCallback) {
         pCallback->onPrepared(THREAD_CHILD);
     }
+}
+
+void JMPlayer::start() {
+    //声明是否播放的标记
+    isPlaying = 1;
+
+    if (videoChannel) {
+        videoChannel->setAudioChannel(audioChannel);
+        videoChannel->start()
+    }
+    if (audioChannel) {
+        audioChannel->start();
+    }
+
+
+    pthread_create(&pid_thread, 0, customTaskStartThread, this);
+}
+
+void JMPlayer::start_() {
+
 }
 
 

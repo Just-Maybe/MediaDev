@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPrepared() {
                 Log.d(TAG, "onPrepared: ");
+                playerManger.startNative();
             }
 
             @Override

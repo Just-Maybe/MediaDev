@@ -33,7 +33,11 @@ private:
 
     VideoChannel *videoChannel = 0;
 
+
 public:
+
+    bool isPlaying;
+
     JMPlayer();
 
     JMPlayer(const char *data_source, JNICallback *callback);
@@ -41,6 +45,14 @@ public:
     void prepare();
 
     void prepare_();
+
+    void start();
+
+    void start_();
+
+    long getDuration() {
+        return duration;
+    }
 };
 
 

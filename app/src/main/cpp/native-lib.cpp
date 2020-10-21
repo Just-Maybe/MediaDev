@@ -57,6 +57,9 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_startNative(JNIEnv *env, jobject thiz) {
     // TODO: implement startNative()
+    if(player){
+        player->start();
+    }
 }
 
 extern "C"
