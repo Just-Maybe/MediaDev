@@ -41,6 +41,7 @@ public:
         this->stream_index = stream_index;
         this->pContext = pContext;
         this->base_time = av_base_time;
+        this->javaCallHelper = jniCallback;
         packages.setReleaseCallback(releaseAVPacket);
         frames.setReleaseCallback(releaseAVFrame);
     }

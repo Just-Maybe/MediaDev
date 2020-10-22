@@ -46,15 +46,15 @@ void JNICallback::onPrepared(int thread_mode) {
 }
 
 void JNICallback::onProgress(int thread_mode, int progress) {
-    if (thread_mode == THREAD_MAIN) {
-        env->CallVoidMethod(this->instance, jmd_progress, progress);
-    } else {
+    if (thread_mode == THREAD_CHILD) {
         JNIEnv *jniEnv = nullptr;
-        int ret = javaVm->AttachCurrentThread(&jniEnv, 0);
-        if (ret != JNI_OK) {
+        if (javaVm->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
             return;
         }
         jniEnv->CallVoidMethod(this->instance, jmd_progress, progress);
+        javaVm->DetachCurrentThread();
+    } else {
+        env->CallVoidMethod(this->instance, jmd_progress, progress);
     }
 }
 

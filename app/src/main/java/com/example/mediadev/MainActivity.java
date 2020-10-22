@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,12 +33,16 @@ public class MainActivity extends AppCompatActivity {
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
-        initPlayer();
-
+        tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                initPlayer();
+            }
+        });
     }
 
     private void initPlayer() {
-        String inputPath = Environment.getExternalStorageDirectory() + "/test.mp4";
+        String inputPath = Environment.getExternalStorageDirectory() + "/input.mp4";
         playerManger = PlayerManger.getInstance();
         playerManger.prepareNative(inputPath);
         playerManger.setmOnPreparedListener(new OnPreparedListener() {
