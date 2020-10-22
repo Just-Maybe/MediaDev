@@ -100,6 +100,13 @@ void AudioChannel::audio_decode() {
     }
 }
 
+void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
+    AudioChannel *audioChannel = static_cast<AudioChannel *>(context);
+    //获取PCM音频数据
+    int pcmSize = audioChannel->getPCM();
+    (*bq)->Enqueue(bq, audioChannel->out_buffers, pcmSize);
+}
+
 /**
  * 使用OpenSL ES 渲染PCM数据 播放音频
  */
@@ -129,7 +136,7 @@ void AudioChannel::audio_player() {
     }
     // 2.2初始化 混音器
     result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-    if(SL_RESULT_SUCCESS!=result){
+    if (SL_RESULT_SUCCESS != result) {
         return;
     }
     //  不启用混响可以不用获取混音器接口
@@ -144,6 +151,68 @@ void AudioChannel::audio_player() {
     //  (*outputMixEnvironmentalReverb)->SetEnvironmentalReverbProperties(
     //       outputMixEnvironmentalReverb, &settings);
     //  }
+
+    //TODO 3.创建播放器
+    // 3.1 配置输入声音信息
+    // 创建buffer缓冲类型的队列 2 个队列
+    SLDataLocator_AndroidBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDBUFFERQUEUE, 2};
+
+    /**
+     * pcm数据
+     * SL_DATAFORMAT_PCM :数据格式pcm格式
+     * 2：双声道
+     * SL_SAMPLINGRATE_44_1:采样率为44100
+     * SL_PCMSAMPLEFORMAT_FIXED_16 : 采样格式 16bit (16位)(2个字节)
+     * SL_PCMSAMPLEFORMAT_FIXED_16 : 采样格式 16bit (16位)(2个字节)
+     * SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT :左右声道(双声道)
+     * SL_BYTEORDER_LITTLEENDIAN: 字节顺序: 小端模式
+     */
+    SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM, 2, SL_SAMPLINGRATE_44_1,
+                                   SL_PCMSAMPLEFORMAT_FIXED_16,
+                                   SL_PCMSAMPLEFORMAT_FIXED_16,
+                                   SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+                                   SL_BYTEORDER_LITTLEENDIAN};
+    //数据源 将上述配置信息放到数据源中
+    SLDataSource audioSrc = {&loc_bufq, &format_pcm};
+
+    // 3.2 配置音轨(输出)
+    // 设置混音器
+    SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
+    SLDataSink audioSnk = {&loc_outmix, NULL};
+
+    //需要的接口 操作队列的接口
+    const SLInterfaceID ids[1] = {SL_IID_BUFFERQUEUE};
+    const SLboolean req[1] = {SL_BOOLEAN_TRUE};
+
+    //3.3创建播放器
+    result = (*engineInterface)->CreateAudioPlayer(engineInterface, &bqPlayerObject, &audioSrc,
+                                                   &audioSnk, 1,
+                                                   ids, req);
+    if (SL_RESULT_SUCCESS != result) {
+        return;
+    }
+    //3.4 初始化播放器：SLObjectItf bqPlayerObject
+    result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
+    if (SL_RESULT_SUCCESS != result) {
+        return;
+    }
+    //3.5 获取播放器接口：SlPlayItf bqPlayerPlay
+    result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
+    if (SL_RESULT_SUCCESS != result) {
+        return;
+    }
+    //TODO 4. 设置播放器回调函数
+    // 4.1 获取播放器队列接口：SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue
+    (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
+
+    //4.2设置回调 void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq,void* context)
+    (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, this);
+
+    //TODO 5.设置播放状态
+    (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
+
+    //TODO 6.手动激活回调函数
+    bqPlayerCallback(bqPlayerBufferQueue, this);
 }
 
 int AudioChannel::getPCM() {
