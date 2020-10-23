@@ -114,6 +114,7 @@ void JMPlayer::prepare_() {
             int fps_value = av_q2d(frame_rate);
             videoChannel = new VideoChannel(stream_index, codecContext, baseTime, fps_value,
                                             pCallback);
+            videoChannel->setRenderCallback(renderCallback);
         }
     }
 
@@ -232,6 +233,10 @@ void JMPlayer::release() {
         formatContext = 0;
     }
     duration = 0;
+}
+
+void JMPlayer::setRenderCallback(RenderCallback renderCallback) {
+    this->renderCallback = renderCallback;
 }
 
 

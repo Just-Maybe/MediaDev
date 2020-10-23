@@ -36,6 +36,7 @@ private:
 
     VideoChannel *videoChannel = 0;
 
+    RenderCallback renderCallback;
 
 public:
 
@@ -54,6 +55,8 @@ public:
     void start();
 
     void start_();
+
+    void setRenderCallback(RenderCallback renderCallback);
 
     long getDuration() {
         return duration;

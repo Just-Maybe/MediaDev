@@ -2,7 +2,7 @@
 #include <string>
 #include "JNICallback.h"
 #include "JMPlayer.h"
-
+#include <android/native_window_jni.h>
 extern "C" {
 #include <libavutil/avutil.h>
 }
@@ -40,6 +40,19 @@ Java_com_example_mediadev_player_PlayerManger_setSurfaceNative(JNIEnv *env, jobj
 
 }
 
+/**
+ *
+ * 专门渲染的函数
+ * @param src_data  解码后的视频 rgba 数据
+ * @param width  视频宽
+ * @param height 视频高
+ * @param src_size 行数 size 相关信息
+ *
+ */
+void renderFrame(uint8_t *src_data, int width, int height, int src_size) {
+
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_prepareNative(JNIEnv *env, jobject thiz,
@@ -48,6 +61,7 @@ Java_com_example_mediadev_player_PlayerManger_prepareNative(JNIEnv *env, jobject
     JNICallback *jniCallback = new JNICallback(javaVM, env, thiz);
     const char *data_source = env->GetStringUTFChars(m_data_source, NULL);
     player = new JMPlayer(data_source, jniCallback);
+    player->setRenderCallback(renderFrame);
     player->prepare();
     env->ReleaseStringUTFChars(m_data_source, data_source);
 }
@@ -57,7 +71,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_startNative(JNIEnv *env, jobject thiz) {
     // TODO: implement startNative()
-    if(player){
+    if (player) {
         player->start();
     }
 }
