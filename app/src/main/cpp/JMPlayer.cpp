@@ -103,7 +103,7 @@ void JMPlayer::prepare_() {
         }
 
         //媒体流 获取时间基
-        AVRational baseTime = codecContext->time_base;
+        AVRational baseTime = stream->time_base;
 
         LOGD("第十步 从编码器参数中获取流类型 codec_type");
         if (codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
