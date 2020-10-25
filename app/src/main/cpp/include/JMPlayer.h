@@ -42,7 +42,7 @@ public:
 
     bool isPlaying;
 
-    bool isStop;
+    bool isStop= false;
 
     JMPlayer();
 

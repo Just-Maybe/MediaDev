@@ -1,6 +1,8 @@
 package com.example.mediadev.player;
 
 import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 import com.example.mediadev.Constants;
 import com.example.mediadev.callback.OnPreparedListener;
@@ -11,7 +13,7 @@ import com.example.mediadev.callback.OnProgressListener;
  * Email: zhaoqirong96@gmail.com
  * Describe:
  */
-public class PlayerManger {
+public class PlayerManger implements SurfaceHolder.Callback {
 
     static {
         System.loadLibrary("avfilter");
@@ -28,6 +30,7 @@ public class PlayerManger {
 
     private OnPreparedListener mOnPreparedListener;
     private OnProgressListener mOnProgressListener;
+    private SurfaceHolder mSurfaceHolder;
 
     private PlayerManger() {
 
@@ -43,6 +46,8 @@ public class PlayerManger {
         }
         return mPlayerManger;
     }
+
+
 
     public void setmOnPreparedListener(OnPreparedListener mOnPreparedListener) {
         this.mOnPreparedListener = mOnPreparedListener;
@@ -118,5 +123,29 @@ public class PlayerManger {
                 break;
         }
         this.mOnPreparedListener.onError(errorText);
+    }
+
+    public void setSurfaceView(SurfaceView surfaceView) {
+        if (null != mSurfaceHolder) {
+            this.mSurfaceHolder.removeCallback(this);
+        }
+        this.mSurfaceHolder = surfaceView.getHolder();
+        this.mSurfaceHolder.addCallback(this);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        Surface surface = mSurfaceHolder.getSurface();
+        setSurfaceNative(surface);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
     }
 }

@@ -3,13 +3,16 @@
 #include "JNICallback.h"
 #include "JMPlayer.h"
 #include <android/native_window_jni.h>
+#include <android/native_window.h>
+
 extern "C" {
 #include <libavutil/avutil.h>
 }
 
 JavaVM *javaVM = 0;
 JMPlayer *player = 0;
-
+ANativeWindow *nativeWindow = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;// 静态初始化 互斥锁
 
 int JNI_OnLoad(JavaVM *javaVM1, void *pVoid) {
     javaVM = javaVM1;
@@ -37,7 +40,15 @@ JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_setSurfaceNative(JNIEnv *env, jobject thiz,
                                                                jobject surface) {
     // TODO: implement setSurfaceNative()
+    pthread_mutex_lock(&mutex);
+    if (nativeWindow) {
+        ANativeWindow_release(nativeWindow);
+        nativeWindow = 0;
+    }
+    //创建新的窗口用于视频显示
+    nativeWindow = ANativeWindow_fromSurface(env, surface);
 
+    pthread_mutex_unlock(&mutex);
 }
 
 /**
@@ -50,7 +61,36 @@ Java_com_example_mediadev_player_PlayerManger_setSurfaceNative(JNIEnv *env, jobj
  *
  */
 void renderFrame(uint8_t *src_data, int width, int height, int src_size) {
+    pthread_mutex_lock(&mutex);
 
+    if (!nativeWindow) {
+        pthread_mutex_unlock(&mutex);
+        nativeWindow = 0;
+        return;;
+    }
+
+    //设置窗口属性
+    ANativeWindow_setBuffersGeometry(nativeWindow, width, height, WINDOW_FORMAT_RGBA_8888);
+
+    ANativeWindow_Buffer window_buffer;
+
+    //锁定创建 准备绘制
+    if (ANativeWindow_lock(nativeWindow, &window_buffer, 0)) {
+        ANativeWindow_release(nativeWindow);
+        nativeWindow = 0;
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
+    //填数据到 buffer 其实就是修改数据
+    uint8_t *dst_data = static_cast<uint8_t *>(window_buffer.bits);
+    int lineSize = window_buffer.stride * 4; //RGBA;
+
+    // 逐行copy
+    for (int i = 0; i < window_buffer.height; ++i) {
+        memcpy(dst_data + i * lineSize, src_data + i * src_size, lineSize);
+    }
+    ANativeWindow_unlockAndPost(nativeWindow);
+    pthread_mutex_unlock(&mutex);
 }
 
 extern "C"

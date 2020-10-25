@@ -129,43 +129,53 @@ void VideoChannel::video_decode() {
  * 视频播放
  */
 void VideoChannel::video_player() {
-    // 1. 原始数据YUV ---> rgba
-    SwsContext *swsContext = sws_getContext(pContext->width, pContext->height, pContext->pix_fmt,
+    //1. 原始视频数据 YUV ---> rgba
+    /**
+     * sws_getContext(int srcW, int srcH, enum AVPixelFormat srcFormat,
+                                  int dstW, int dstH, enum AVPixelFormat dstFormat,
+                                  int flags, SwsFilter *srcFilter,
+                                  SwsFilter *dstFilter, const double *param)
+     */
+    SwsContext *swsContext = sws_getContext(pContext->width, pContext->height,
+                                            pContext->pix_fmt,
                                             pContext->width, pContext->height, AV_PIX_FMT_RGBA,
                                             SWS_BILINEAR, NULL, NULL, NULL);
-    //2.给dst_data 申请内存
+    //2. 给 dst_data 申请内存
     uint8_t *dst_data[4];
     int dst_linesize[4];
     AVFrame *frame = 0;
 
     /**
      * pointers[4]：保存图像通道的地址。如果是RGB，则前三个指针分别指向R,G,B的内存地址。第四个指针保留不用
-     *
-     * linesizes[4]：保存图像每个通道的内存对齐的步长，即一行的对齐内存的宽度，此值大小等于图像宽度。
-     *
-     *  w: 要申请内存的图像宽度。
-     *
-     *  h:  要申请内存的图像高度。
-     *
-     *  pix_fmt: 要申请内存的图像的像素格式。
-     *
-     *  align: 用于内存对齐的值。
-     *
-     *  返回值：所申请的内存空间的总大小。如果是负值，表示申请失败。
+
+     *   linesizes[4]：保存图像每个通道的内存对齐的步长，即一行的对齐内存的宽度，此值大小等于图像宽度。
+
+     *   w: 要申请内存的图像宽度。
+
+     *   h:  要申请内存的图像高度。
+
+     *   pix_fmt: 要申请内存的图像的像素格式。
+
+     *   align: 用于内存对齐的值。
+
+     *   返回值：所申请的内存空间的总大小。如果是负值，表示申请失败。
      */
     int ret = av_image_alloc(dst_data, dst_linesize, pContext->width, pContext->height,
                              AV_PIX_FMT_RGBA, 1);
-
     if (ret < 0) {
-        LOGE("Could not allocate source image \n");
+        printf("Could not allocate source image\n");
         return;
     }
-    //3. YUV -> rgba 格式转换  一帧一帧转换
+
+    //3. YUV -> rgba 格式转换 一帧一帧的转换
     while (isPlaying) {
 
         if (isStop) {
+            //线程休眠 10s
+//            usleep(2 * 1000 * 1000);
             continue;
         }
+
         int ret = frames.pop(frame);
 
         //如果停止播放，跳出循环，需要释放
@@ -176,60 +186,72 @@ void VideoChannel::video_player() {
         if (!ret) {
             continue;
         }
-        //真正转换的函数，dst_data是rgba 格式数据
+        LOGD("获取 视频 解码后的数据");
+        //真正转换的函数,dst_data 是 rgba 格式的数据
         sws_scale(swsContext, frame->data, frame->linesize, 0, pContext->height, dst_data,
                   dst_linesize);
 
-        //视频向音频时间戳对齐 --->控制视频播放速度
-        //在视频渲染之前，根据fps 来控制视频帧
-        //frame->repeat_pict = 当解码时，这张图片需要延迟多久显示
+
+
+
+        //视频向音频时间戳对齐---》控制视频播放速度
+        //在视频渲染之前，根据 fps 来控制视频帧
+        //frame->repeat_pict = 当解码时，这张图片需要要延迟多久显示
         double extra_delay = frame->repeat_pict;
-        //根据fps得到延迟时间
-        double base_delay = 1 / this->fpsValue;
+        //根据 fps 得到延迟时间
+        double base_delay = 1.0 / this->fpsValue;
         //得到当前帧的延迟时间
         double result_delay = extra_delay + base_delay;
 
+        LOGD("frame->best_effort_timestamp  : %d ,  av_q2d(this->base_time) : %f ",frame->best_effort_timestamp, av_q2d(this->base_time) )
         //拿到视频播放的时间基
         this->video_time = frame->best_effort_timestamp * av_q2d(this->base_time);
 
         //拿到音频播放的时间基
-        double audioTime = audioChannel->audio_time;
+        double_t audioTime = this->audioChannel->audio_time;
 
-        //计算音和视频的差值
+        //计算音频和视频的差值
         double av_time_diff = video_time - audioTime;
 
-        LOGE("av_time_diff init audioTime :%f, video :%f", audioTime, video_time);
+        LOGE("av_time_diff init audioTime :%f, video：%f", this->audioChannel->audio_time,
+             video_time);
         //说明:
         //video_time > audioTime 说明视频快，音频慢，等待音频
         //video_time < audioTime 说明视频慢，音屏快，需要追赶音频，丢弃掉冗余的视频包也就是丢帧
         if (av_time_diff > 0) {
+            //通过睡眠的方式灵活等待
             if (av_time_diff > 1) {
-                av_usleep(result_delay * 2 * 1000000);
+                av_usleep((result_delay * 2) * 1000000);
                 LOGE("av_time_diff >  1 睡眠:%f", (result_delay * 2) * 1000000);
-            } else {
+            } else {//说明相差不大
                 av_usleep((av_time_diff + result_delay) * 1000000);
                 LOGE("av_time_diff < 1 睡眠:%d", (av_time_diff + result_delay) * 1000000);
             }
         } else if (av_time_diff < 0) {
-            frames.deleteVideoFrame();
-            LOGE("av_time_diff <0  睡眠:%s，丢包:%f ，剩余包: %d", "不睡眠", av_time_diff, frames.queueSize());
+            //视频丢包处理
+            this->frames.deleteVideoFrame();
+            LOGE("av_time_diff <0  睡眠:%s，丢包:%f ，剩余包: %d", "不睡面", av_time_diff, frames.queueSize());
             continue;
         } else {
-
+            //完美
         }
 
+
+        //diff太大了不回调了
         if (javaCallHelper && !audioChannel) {
             javaCallHelper->onProgress(THREAD_CHILD, video_time);
         }
 
         //开始渲染，显示屏幕上
-        //渲染一帧图像
-        if (renderCallback && pContext) {
+        //渲染一帧图像(宽、高、数据)
+        if (renderCallback && pContext)
             renderCallback(dst_data[0], pContext->width, pContext->height, dst_linesize[0]);
-        }
-        releaseAVFrame(&frame);
+        releaseAVFrame(&frame);//渲染完了，frame 释放。
+
+
     }
-    releaseAVFrame(&frame);
+    releaseAVFrame(&frame);//渲染完了，frame 释放。
+    //停止播放 flag
     isPlaying = 0;
     av_freep(&dst_data[0]);
     sws_freeContext(swsContext);
@@ -240,7 +262,7 @@ void VideoChannel::setRenderCallback(RenderCallback renderCallback) {
 }
 
 void VideoChannel::setAudioChannel(AudioChannel *audioChannel) {
-
+    this->audioChannel = audioChannel;
 }
 
 void VideoChannel::release() {

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private PlayerManger playerManger;
+    private SurfaceView surfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
+        surfaceView = findViewById(R.id.surface_view);
+        playerManger = PlayerManger.getInstance();
+        playerManger.setSurfaceView(surfaceView);
         tv.setText(stringFromJNI());
         tv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -43,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void initPlayer() {
         String inputPath = Environment.getExternalStorageDirectory() + "/input.mp4";
-        playerManger = PlayerManger.getInstance();
         playerManger.prepareNative(inputPath);
         playerManger.setmOnPreparedListener(new OnPreparedListener() {
             @Override
