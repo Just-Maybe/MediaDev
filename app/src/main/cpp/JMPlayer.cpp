@@ -239,4 +239,14 @@ void JMPlayer::setRenderCallback(RenderCallback renderCallback) {
     this->renderCallback = renderCallback;
 }
 
+void JMPlayer::restart() {
+    isStop= false;
+    if(videoChannel){
+        videoChannel->restart();
+    }
+    if(audioChannel){
+        audioChannel->restart();
+    }
+}
+
 

@@ -120,18 +120,27 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_restartNative(JNIEnv *env, jobject thiz) {
     // TODO: implement restartNative()
+    if (player) {
+        player->restart();
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_stopNative(JNIEnv *env, jobject thiz) {
     // TODO: implement stopNative()
+    if (player) {
+        player->stop();
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_releaseNative(JNIEnv *env, jobject thiz) {
     // TODO: implement releaseNative()
+    if(player){
+        player->release();
+    }
 }
 
 extern "C"

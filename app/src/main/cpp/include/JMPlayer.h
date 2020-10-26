@@ -65,6 +65,8 @@ public:
     void stop();
 
     void release();
+
+    void restart();
 };
 
 

@@ -16,7 +16,7 @@ import com.example.mediadev.player.PlayerManger;
 
 import java.util.function.LongUnaryOperator;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     // Used to load the 'native-lib' library on application startup.
@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PlayerManger playerManger;
     private SurfaceView surfaceView;
+    private TextView tvStart, tvPause, tvRestart, tvRelease;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,17 +34,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Example of a call to a native method
-        TextView tv = findViewById(R.id.sample_text);
+        TextView tvStart = findViewById(R.id.btn_start);
+        TextView tvPause = findViewById(R.id.btn_pause);
+        TextView tvRestart = findViewById(R.id.btn_restart);
+        TextView tvRelease = findViewById(R.id.btn_release);
         surfaceView = findViewById(R.id.surface_view);
         playerManger = PlayerManger.getInstance();
         playerManger.setSurfaceView(surfaceView);
-        tv.setText(stringFromJNI());
-        tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                initPlayer();
-            }
-        });
+        tvStart.setOnClickListener(this);
+        tvPause.setOnClickListener(this);
+        tvRestart.setOnClickListener(this);
+        tvRelease.setOnClickListener(this);
     }
 
     private void initPlayer() {
@@ -69,5 +70,27 @@ public class MainActivity extends AppCompatActivity {
      */
     public native String stringFromJNI();
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        playerManger.stopNative();
+    }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_start:
+                initPlayer();
+                break;
+            case R.id.btn_pause:
+                playerManger.stopNative();
+                break;
+            case R.id.btn_restart:
+                playerManger.restartNative();
+                break;
+            case R.id.btn_release:
+                playerManger.releaseNative();
+                break;
+        }
+    }
 }

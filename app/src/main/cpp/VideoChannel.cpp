@@ -203,7 +203,8 @@ void VideoChannel::video_player() {
         //得到当前帧的延迟时间
         double result_delay = extra_delay + base_delay;
 
-        LOGD("frame->best_effort_timestamp  : %d ,  av_q2d(this->base_time) : %f ",frame->best_effort_timestamp, av_q2d(this->base_time) )
+        LOGD("frame->best_effort_timestamp  : %d ,  av_q2d(this->base_time) : %f ",
+             frame->best_effort_timestamp, av_q2d(this->base_time))
         //拿到视频播放的时间基
         this->video_time = frame->best_effort_timestamp * av_q2d(this->base_time);
 
@@ -213,7 +214,8 @@ void VideoChannel::video_player() {
         //计算音频和视频的差值
         double av_time_diff = video_time - audioTime;
 
-        LOGE("av_time_diff init audioTime :%f, video：%f", this->audioChannel->audio_time,
+        LOGE("av_time_diff : %f audioTime :%f, videoTime：%f", av_time_diff,
+             this->audioChannel->audio_time,
              video_time);
         //说明:
         //video_time > audioTime 说明视频快，音频慢，等待音频
