@@ -138,7 +138,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_mediadev_player_PlayerManger_releaseNative(JNIEnv *env, jobject thiz) {
     // TODO: implement releaseNative()
-    if(player){
+    if (player) {
         player->release();
     }
 }
@@ -147,4 +147,19 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_example_mediadev_player_PlayerManger_isPlayerNative(JNIEnv *env, jobject thiz) {
     // TODO: implement isPlayerNative()
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_mediadev_player_PlayerManger_seekNative(JNIEnv *env, jobject thiz, jint progress) {
+    // TODO: implement seekNative()
+    if (player) {
+        player->seek(progress);
+    }
+}extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_example_mediadev_player_PlayerManger_getDurationNative(JNIEnv *env, jobject thiz) {
+    // TODO: implement getDurationNative()
+    if (player) {
+        return player->getDuration();
+    }
+    return 0;
 }

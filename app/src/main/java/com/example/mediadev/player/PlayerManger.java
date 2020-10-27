@@ -48,7 +48,6 @@ public class PlayerManger implements SurfaceHolder.Callback {
     }
 
 
-
     public void setmOnPreparedListener(OnPreparedListener mOnPreparedListener) {
         this.mOnPreparedListener = mOnPreparedListener;
     }
@@ -72,6 +71,10 @@ public class PlayerManger implements SurfaceHolder.Callback {
     public native void releaseNative();
 
     public native boolean isPlayerNative();
+
+    public native void seekNative(int progress);
+
+    public native long getDurationNative();
 
     /**
      * JNI 反射调用的方法

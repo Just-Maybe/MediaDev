@@ -73,9 +73,9 @@ void VideoChannel::start() {
 
 void VideoChannel::stop() {
     isStop = true;
-    if (javaCallHelper) {
-        javaCallHelper = 0;
-    }
+//    if (javaCallHelper) {
+//        javaCallHelper = 0;
+//    }
 }
 
 /**

@@ -38,11 +38,14 @@ private:
 
     RenderCallback renderCallback;
 
+
 public:
 
     bool isPlaying;
 
-    bool isStop= false;
+    bool isStop = false;
+
+    bool isSeek = 0;
 
     JMPlayer();
 
@@ -67,6 +70,9 @@ public:
     void release();
 
     void restart();
+
+    void seek(int i);
+
 };
 
 

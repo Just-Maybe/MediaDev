@@ -287,9 +287,9 @@ int AudioChannel::getPCM() {
 
 void AudioChannel::stop() {
     isStop = true;
-    if (javaCallHelper) {
-        javaCallHelper = 0;
-    }
+//    if (javaCallHelper) {
+//        javaCallHelper = 0;
+//    }
 }
 
 void AudioChannel::release() {

@@ -69,6 +69,9 @@ void JMPlayer::prepare_() {
             return;
         }
     }
+
+    duration = formatContext->duration == 0 ? 0 : formatContext->duration / 1000000;
+
     LOGD("第三步 遍历流信息，查找音频流，视频流");
     for (int stream_index = 0; stream_index < formatContext->nb_streams; ++stream_index) {
         LOGD("第四步 获取流信息")
@@ -186,10 +189,12 @@ void JMPlayer::start_() {
             }
         } else if (ret == AVERROR_EOF) { //读取完毕
             LOGE("steam_index 拆包完成 读取完成了");
-            isPlaying = 0;
-            stop();
-            release();
-            break;
+            while(videoChannel->frames.queueSize()==0 && audioChannel->frames.queueSize()==0){
+                isPlaying = 0;
+                stop();
+                release();
+                break;
+            }
         } else {
             LOGE("steam_index 拆包 读取失败");
             break;
@@ -240,13 +245,49 @@ void JMPlayer::setRenderCallback(RenderCallback renderCallback) {
 }
 
 void JMPlayer::restart() {
-    isStop= false;
-    if(videoChannel){
+    isStop = false;
+    if (videoChannel) {
         videoChannel->restart();
     }
-    if(audioChannel){
+    if (audioChannel) {
         audioChannel->restart();
     }
+}
+
+/**
+ * 定位到 i 秒
+ * @param i
+ */
+void JMPlayer::seek(int i) {
+    if (i < 0 || i > duration) {
+        return;
+    }
+
+    if (!audioChannel && !videoChannel) {
+        return;
+    }
+    if (!formatContext) {
+        return;
+    }
+    isSeek = i;
+
+    pthread_mutex_lock(&seekMutex);
+    //转单位 微秒
+    int64_t seek = i * 1000000;
+
+    //seek到请求的时间 之前最近的关键帧
+    //只有从关键帧才能开始解码出完整图片
+    av_seek_frame(formatContext, -1, seek, AVSEEK_FLAG_BACKWARD);
+
+    //清空缓存
+    if (audioChannel) {
+        audioChannel->clear();
+    }
+    if (videoChannel) {
+        videoChannel->clear();
+    }
+    pthread_mutex_unlock(&seekMutex);
+    isSeek = 0;
 }
 
 

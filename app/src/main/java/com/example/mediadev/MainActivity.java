@@ -8,15 +8,18 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediadev.callback.OnPreparedListener;
+import com.example.mediadev.callback.OnProgressListener;
 import com.example.mediadev.player.PlayerManger;
 
+import java.util.ArrayList;
 import java.util.function.LongUnaryOperator;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnProgressListener {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     // Used to load the 'native-lib' library on application startup.
@@ -27,6 +30,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private PlayerManger playerManger;
     private SurfaceView surfaceView;
     private TextView tvStart, tvPause, tvRestart, tvRelease;
+    private SeekBar seekBar;
+
+    private boolean isTouch;
+    private boolean isSeek;
+    private int progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,10 +42,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         // Example of a call to a native method
-        TextView tvStart = findViewById(R.id.btn_start);
-        TextView tvPause = findViewById(R.id.btn_pause);
-        TextView tvRestart = findViewById(R.id.btn_restart);
-        TextView tvRelease = findViewById(R.id.btn_release);
+        tvStart = findViewById(R.id.btn_start);
+        tvPause = findViewById(R.id.btn_pause);
+        tvRestart = findViewById(R.id.btn_restart);
+        tvRelease = findViewById(R.id.btn_release);
+        seekBar = findViewById(R.id.seek_bar);
         surfaceView = findViewById(R.id.surface_view);
         playerManger = PlayerManger.getInstance();
         playerManger.setSurfaceView(surfaceView);
@@ -45,6 +54,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvPause.setOnClickListener(this);
         tvRestart.setOnClickListener(this);
         tvRelease.setOnClickListener(this);
+        playerManger.setmOnProgressListener(this);
+        initListener();
+    }
+
+    private void initListener() {
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                isTouch = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                isTouch = false;
+                isSeek = true;
+                progress = (int) (playerManger.getDurationNative() * seekBar.getProgress() / 100);
+                playerManger.seekNative(progress);
+            }
+        });
     }
 
     private void initPlayer() {
@@ -59,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onError(String error) {
-
             }
         });
     }
@@ -91,6 +123,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_release:
                 playerManger.releaseNative();
                 break;
+        }
+    }
+
+    @Override
+    public void onProgress(final int progress) {
+        if (!isTouch) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (playerManger == null) return;
+                    int duration = (int) playerManger.getDurationNative();
+                    if (duration != 0) {
+                        if (isSeek) {
+                            isSeek = false;
+                            return;
+                        }
+                        //更新进度 计算比例
+                        seekBar.setProgress(progress * 100 / duration);
+                    }
+                }
+            });
         }
     }
 }
