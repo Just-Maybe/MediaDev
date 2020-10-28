@@ -26,9 +26,10 @@ public class MoocActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mooc);
         tvMeta = findViewById(R.id.tv_meta);
-        String path = Environment.getExternalStorageDirectory()+"/input.mp4";
-        tvMeta.setText(getVideoInfo(path));
+        String inputPath = Environment.getExternalStorageDirectory() + "/input.mp4";
+        String outPath = Environment.getExternalStorageDirectory() + "/output.flv";
+        mp4ToFlv(inputPath, outPath);
     }
 
-    public native String getVideoInfo(String path);
+    public native void mp4ToFlv(String path, String outputPath);
 }

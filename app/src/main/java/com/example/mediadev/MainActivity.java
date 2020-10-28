@@ -2,18 +2,21 @@ package com.example.mediadev;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mediadev.callback.OnPreparedListener;
 import com.example.mediadev.callback.OnProgressListener;
+import com.example.mediadev.mooc.MoocActivity;
 import com.example.mediadev.player.PlayerManger;
 
 import java.util.ArrayList;
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SurfaceView surfaceView;
     private TextView tvStart, tvPause, tvRestart, tvRelease;
     private SeekBar seekBar;
+    private Button btnMooc;
 
     private boolean isTouch;
     private boolean isSeek;
@@ -42,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         // Example of a call to a native method
+        btnMooc = findViewById(R.id.btn_mooc);
         tvStart = findViewById(R.id.btn_start);
         tvPause = findViewById(R.id.btn_pause);
         tvRestart = findViewById(R.id.btn_restart);
@@ -54,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvPause.setOnClickListener(this);
         tvRestart.setOnClickListener(this);
         tvRelease.setOnClickListener(this);
+        btnMooc.setOnClickListener(this);
         playerManger.setmOnProgressListener(this);
         initListener();
     }
@@ -122,6 +128,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_release:
                 playerManger.releaseNative();
+                break;
+            case R.id.btn_mooc:
+                startActivity(new Intent(MainActivity.this, MoocActivity.class));
                 break;
         }
     }
