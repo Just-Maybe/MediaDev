@@ -4,8 +4,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_meta"
+    <Button
+        android:id="@+id/btn_transform"
+        android:text="mp4ToFlv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <Button
+        android:layout_marginTop="10dp"
+        android:id="@+id/btn_cut_video"
+        android:text="CutVideo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 </LinearLayout>
